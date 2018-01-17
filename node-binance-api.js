@@ -41,13 +41,13 @@ module.exports = function() {
 		request(opt, function(error, response, body) {
 			if ( !callback ) return;
 
-			if ( error ) 
+			if ( error )
 				return callback( error );
 
-			if ( response && response.statusCode !== 200 ) 
+			if ( response && response.statusCode !== 200 )
 				return callback( response );
 
-			if ( callback ) 
+			if ( callback )
 				return callback( null, JSON.parse(body) );
 		});
 	};
@@ -68,13 +68,13 @@ module.exports = function() {
 		request(opt, function(error, response, body) {
 			if ( !callback ) return;
 
-			if ( error ) 
+			if ( error )
 				return callback( error );
 
-			if ( response && response.statusCode !== 200 ) 
+			if ( response && response.statusCode !== 200 )
 				return callback( response );
 
-			if ( callback ) 
+			if ( callback )
 				return callback( null, JSON.parse(body) );
 		});
 	};
@@ -101,13 +101,13 @@ module.exports = function() {
 		request(opt, function(error, response, body) {
 			if ( !callback ) return;
 
-			if ( error ) 
+			if ( error )
 				return callback( error );
 
-			if ( response && response.statusCode !== 200 ) 
+			if ( response && response.statusCode !== 200 )
 				return callback( response );
 
-			if ( callback ) 
+			if ( callback )
 				return callback( null, JSON.parse(body) );
 		});
 	};
@@ -453,19 +453,19 @@ LIMIT_MAKER
 			order('SELL', symbol, quantity, 0, flags, callback);
 		},
 		cancel: function(symbol, orderid, callback = false) {
-			signedRequest(base+'v3/order', {symbol:symbol, orderId:orderid}, function(data) {
-				if ( callback ) return callback.call(this, data, symbol);
+			signedRequest(base+'v3/order', {symbol:symbol, orderId:orderid}, function(error, data) {
+				if ( callback ) return callback.call(this, error, data, symbol);
 			}, 'DELETE');
 		},
 		orderStatus: function(symbol, orderid, callback) {
-			signedRequest(base+'v3/order', {symbol:symbol, orderId:orderid}, function(data) {
-				if ( callback ) return callback.call(this, data, symbol);
+			signedRequest(base+'v3/order', {symbol:symbol, orderId:orderid}, function(error, data) {
+				if ( callback ) return callback.call(this, error, data, symbol);
 			});
 		},
 		openOrders: function(symbol, callback) {
 			let postData = symbol ? {symbol:symbol} : {};
-			signedRequest(base+'v3/openOrders', postData, function(data) {
-				return callback.call(this, data, symbol);
+			signedRequest(base+'v3/openOrders', postData, function(error, data) {
+				return callback.call(this, error, data, symbol);
 			});
 		},
 		cancelOrders: function(symbol, callback = false) {
@@ -473,50 +473,54 @@ LIMIT_MAKER
 				for ( let obj of json ) {
 					let quantity = obj.origQty - obj.executedQty;
 					console.log('cancel order: '+obj.side+' '+symbol+' '+quantity+' @ '+obj.price+' #'+obj.orderId);
-					signedRequest(base+'v3/order', {symbol:symbol, orderId:obj.orderId}, function(data) {
-						if ( callback ) return callback.call(this, data, symbol);
+					signedRequest(base+'v3/order', {symbol:symbol, orderId:obj.orderId}, function(error, data) {
+						if ( callback ) return callback.call(this, error, data, symbol);
 					}, 'DELETE');
 				}
 			});
 		},
 		allOrders: function(symbol, callback) {
-			signedRequest(base+'v3/allOrders', {symbol:symbol, limit:500}, function(data) {
-				if ( callback ) return callback.call(this, data, symbol);
+			signedRequest(base+'v3/allOrders', {symbol:symbol, limit:500}, function(error, data) {
+				if ( callback ) return callback.call(this, error, data, symbol);
 			});
 		},
 		depth: function(symbol, callback, limit = 100) {
-			publicRequest(base+'v1/depth', {symbol:symbol, limit:limit}, function(data) {
-				return callback.call(this, depthData(data), symbol);
+			publicRequest(base+'v1/depth', {symbol:symbol, limit:limit}, function(error, data) {
+				return callback.call(this, error, depthData(data), symbol);
 			});
 		},
 		prices: function(callback) {
 			request(base+'v1/ticker/allPrices', function(error, response, body) {
-				if ( !response || !body ) throw 'allPrices error: '+error;
-				if ( callback ) {
-					try {
-						callback(priceData(JSON.parse(body)));
-					} catch (error) {
-						console.error('Parse error: '+error.message);
-					}
-				}
+				if ( !callback ) return;
+
+				if ( error )
+					return callback( error );
+
+				if ( response && response.statusCode !== 200 )
+					return callback( response );
+
+				if ( callback )
+					return callback( null, priceData(JSON.parse(body)) );
 			});
 		},
 		bookTickers: function(callback) {
 			request(base+'v1/ticker/allBookTickers', function(error, response, body) {
-				if ( !response || !body ) throw 'allBookTickers error: '+error;
-				if ( callback ) {
-					try {
-						callback(bookPriceData(JSON.parse(body)));
-					} catch (error) {
-						console.error('Parse error: '+error.message);
-					}
-				}
+				if ( !callback ) return;
+
+				if ( error )
+					return callback( error );
+
+				if ( response && response.statusCode !== 200 )
+					return callback( response );
+
+				if ( callback )
+					return callback( null, bookPriceData(JSON.parse(body)) );
 			});
 		},
 		prevDay: function(symbol, callback) {
 			let input = symbol ? {symbol:symbol} : {};
-			publicRequest(base+'v1/ticker/24hr', input, function(data) {
-				if ( callback ) return callback.call(this, data, symbol);
+			publicRequest(base+'v1/ticker/24hr', input, function(error, data) {
+				if ( callback ) return callback.call(this, error, data, symbol);
 			});
 		},
 		exchangeInfo: function(callback) {
@@ -561,8 +565,8 @@ Move this to a future release v0.4.0
 */
 		trades: function(symbol, callback, options = {}) {
 			let parameters = Object.assign({symbol:symbol}, options);
-			signedRequest(base+'v3/myTrades', parameters, function(data) {
-				if ( callback ) return callback.call(this, data, symbol);
+			signedRequest(base+'v3/myTrades', parameters, function(error, data) {
+				if ( callback ) return callback.call(this, error, data, symbol);
 			});
 		},
 		recentTrades: function(symbol, callback, limit = 500) {
@@ -601,8 +605,8 @@ Move this to a future release v0.4.0
 			return {open:open, high:high, low:low, close:close, volume:volume};
 		},
 		candlesticks: function(symbol, interval = '5m', callback) { //1m,3m,5m,15m,30m,1h,2h,4h,6h,8h,12h,1d,3d,1w,1M
-			publicRequest(base+'v1/klines', {symbol:symbol, interval:interval}, function(data) {
-				return callback.call(this, data, symbol);
+			publicRequest(base+'v1/klines', {symbol:symbol, interval:interval}, function(error, data) {
+				return callback.call(this, error, data, symbol);
 			});
 		},
 		publicRequest: function(url, data, callback, method = 'GET') {
