@@ -4,11 +4,6 @@ binance.options({
   'APISECRET':'<api secret>'
 });
 
-// Get bid/ask prices
-//binance.allBookTickers(function(error, json) {
-//  console.log("allBookTickers",json);
-//});
-
 // Getting latest price of a symbol
 binance.prices(function(error, ticker) {
 	console.log("prices()", ticker);
